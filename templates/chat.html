@@ -14,68 +14,134 @@
 	
 	
 	<body>
-		<div class="container-fluid h-100">
-			<div class="row justify-content-center h-100">		
-				<div class="col-md-8 col-xl-6 chat">
-					<div class="card">
-						<div class="card-header msg_head">
-							<div class="d-flex bd-highlight">
-								<div class="img_cont">
-									<img src="https://cdn-icons-png.flaticon.com/512/387/387569.png" class="rounded-circle user_img">
-									<!-- <img src="https://www.prdistribution.com/spirit/uploads/pressreleases/2019/newsreleases/d83341deb75c4c4f6b113f27b1e42cd8-chatbot-florence-already-helps-thousands-of-patients-to-remember-their-medication.png" class="rounded-circle user_img"> -->
-									<span class="online_icon"></span>
-								</div>
-								<div class="user_info">
-									<span>Medical Chatbot</span>
-									<p>Ask me anything!</p>
-								</div>
-							</div>
-						</div>
-						<div id="messageFormeight" class="card-body msg_card_body">
-							
-							
-						</div>
-						<div class="card-footer">
-							<form id="messageArea" class="input-group">
-                                <input type="text" id="text" name="msg" placeholder="Type your message..." autocomplete="off" class="form-control type_msg" required/>
-								<div class="input-group-append">
-									<button type="submit" id="send" class="input-group-text send_btn"><i class="fas fa-location-arrow"></i></button>
-								</div>
-							</form>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		
-		<script>
-			$(document).ready(function() {
-				$("#messageArea").on("submit", function(event) {
-					const date = new Date();
-					const hour = date.getHours();
-					const minute = date.getMinutes();
-					const str_time = hour+":"+minute;
-					var rawText = $("#text").val();
+    <div class="chat-container">
+        <div class="chat-card">
+            <div class="chat-header">
+                <div class="header-icon">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <div class="header-info">
+                    <h3>Medical Assistant</h3>
+                    <p><span class="status-indicator"></span>Available 24/7</p>
+                </div>
+            </div>
 
-					var userHtml = '<div class="d-flex justify-content-end mb-4"><div class="msg_cotainer_send">' + rawText + '<span class="msg_time_send">'+ str_time + '</span></div><div class="img_cont_msg"><img src="https://i.ibb.co/d5b84Xw/Untitled-design.png" class="rounded-circle user_img_msg"></div></div>';
-					
-					$("#text").val("");
-					$("#messageFormeight").append(userHtml);
+            <div class="chat-body" id="chatBody">
+                <div class="welcome-message">
+                    <i class="fas fa-user-md"></i>
+                    <h4>Welcome to Medical Assistant</h4>
+                    <p>I'm here to help answer your health-related questions.</p>
+                    <p>Please note: This is for informational purposes only and not a substitute for professional medical advice.</p>
+                </div>
+            </div>
 
-					$.ajax({
-						data: {
-							msg: rawText,	
-						},
-						type: "POST",
-						url: "/get",
-					}).done(function(data) {
-						var botHtml = '<div class="d-flex justify-content-start mb-4"><div class="img_cont_msg"><img src="https://cdn-icons-png.flaticon.com/512/387/387569.png" class="rounded-circle user_img_msg"></div><div class="msg_cotainer">' + data + '<span class="msg_time">' + str_time + '</span></div></div>';
-						$("#messageFormeight").append($.parseHTML(botHtml));
-					});
-					event.preventDefault();
-				});
-			});
-		</script>
+            <div class="chat-footer">
+                <form class="input-container" id="messageForm">
+                    <input 
+                        type="text" 
+                        class="message-input" 
+                        id="messageInput" 
+                        placeholder="Type your message here..." 
+                        autocomplete="off"
+                        required
+                    >
+                    <button type="submit" class="send-button">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            function getTimeString() {
+                const date = new Date();
+                const hours = date.getHours().toString().padStart(2, '0');
+                const minutes = date.getMinutes().toString().padStart(2, '0');
+                return `${hours}:${minutes}`;
+            }
+
+            function scrollToBottom() {
+                const chatBody = document.getElementById('chatBody');
+                chatBody.scrollTop = chatBody.scrollHeight;
+            }
+
+            $("#messageForm").on("submit", function(event) {
+                event.preventDefault();
+                
+                const messageText = $("#messageInput").val().trim();
+                if (!messageText) return;
+
+                const timeString = getTimeString();
+                
+                // Remove welcome message if it exists
+                $('.welcome-message').fadeOut(300, function() {
+                    $(this).remove();
+                });
+
+                // Add user message
+                const userMessage = `
+                    <div class="message-wrapper user user-message">
+                        <div class="message-content">
+                            <div class="message-bubble">
+                                ${messageText}
+                            </div>
+                            <span class="message-time">${timeString}</span>
+                        </div>
+                        <div class="message-avatar user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </div>
+                `;
+                
+                $("#chatBody").append(userMessage);
+                $("#messageInput").val("");
+                scrollToBottom();
+
+                // Send to server
+                $.ajax({
+                    data: { msg: messageText },
+                    type: "POST",
+                    url: "/get",
+                }).done(function(data) {
+                    const botMessage = `
+                        <div class="message-wrapper bot bot-message">
+                            <div class="message-avatar bot-avatar">
+                                <i class="fas fa-stethoscope"></i>
+                            </div>
+                            <div class="message-content">
+                                <div class="message-bubble">
+                                    ${data}
+                                </div>
+                                <span class="message-time">${timeString}</span>
+                            </div>
+                        </div>
+                    `;
+                    $("#chatBody").append(botMessage);
+                    scrollToBottom();
+                }).fail(function() {
+                    const errorMessage = `
+                        <div class="message-wrapper bot bot-message">
+                            <div class="message-avatar bot-avatar">
+                                <i class="fas fa-stethoscope"></i>
+                            </div>
+                            <div class="message-content">
+                                <div class="message-bubble">
+                                    I'm sorry, I'm having trouble connecting right now. Please try again.
+                                </div>
+                                <span class="message-time">${timeString}</span>
+                            </div>
+                        </div>
+                    `;
+                    $("#chatBody").append(errorMessage);
+                    scrollToBottom();
+                });
+            });
+        });
+    </script>
+</body>
         
     </body>
 </html>
