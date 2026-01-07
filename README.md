@@ -222,6 +222,7 @@ For detailed deployment logs and status, check the Actions tab in your GitHub re
 
 ## Important Disclaimer
 
+
 ⚠️ **Medical Disclaimer**: This chatbot is designed for informational purposes only. It is not intended to be a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition. Never disregard professional medical advice or delay in seeking it because of something you have read or received from this chatbot.
 
 ## Contributing
